@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoodMelody | Chat with AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 30%, #feada6 60%, #f3a683 100%);
+            height: 100vh;
+        }
+        .glass-container {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+        #chatMessages::-webkit-scrollbar { width: 4px; }
+        #chatMessages::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-between py-6 px-4">
+
+    <!-- Header -->
+    <header class="w-full max-w-4xl flex justify-between items-center px-6 mb-4">
+        <a href="mainpage.html" class="text-rose-700 hover:text-rose-900 transition-all">
+            <i class="fa-solid fa-arrow-left text-xl"></i>
+        </a>
+        <div class="text-2xl font-black text-rose-700">MoodMelody Chat</div>
+        <div class="w-10 h-10 rounded-full bg-white/50 border border-white/50 flex items-center justify-center font-bold text-rose-700">SG</div>
+    </header>
+
+    <!-- Chat Box (Wider version) -->
+    <main class="w-full max-w-2xl glass-container rounded-[2.5rem] p-6 flex flex-col h-[70vh] shadow-2xl relative">
+        <div id="chatMessages" class="flex-1 overflow-y-auto space-y-4 p-4 mb-4">
+            <!-- Initial Message -->
+            <div class="bg-rose-100/80 p-3 rounded-2xl rounded-tl-none text-rose-900 self-start max-w-[80%] shadow-sm">
+                Hey Subhom! I'm your AI companion. How's your day going?
+            </div>
+        </div>
+
+        <!-- Input Box -->
+        <div class="flex gap-3 bg-white/40 p-3 rounded-2xl border border-white/50">
+            <input id="chatInput" type="text" 
+                class="flex-1 bg-transparent border-none focus:ring-0 outline-none text-rose-900 placeholder-rose-700/40 text-sm" 
+                placeholder="Share what's on your mind...">
+            <button onclick="sendChatMessage()" class="bg-rose-600 hover:bg-rose-500 text-white px-6 py-2 rounded-xl text-sm font-bold transition-all active:scale-95 shadow-md">
+                Send
+            </button>
+        </div>
+    </main>
+
+    <!-- Navigation Footer -->
+    <footer class="w-full max-w-xl flex justify-around items-center glass-container rounded-3xl p-4 mt-4">
+        <a href="mainpage.html" class="flex flex-col items-center gap-1 opacity-50 hover:opacity-100 transition-all">
+            <span class="text-xl">🏠</span>
+            <span class="text-[10px] font-bold text-rose-900 uppercase">Home</span>
+        </a>
+        <div class="flex flex-col items-center gap-1">
+            <span class="text-xl">💬</span>
+            <span class="text-[10px] font-bold text-rose-900 uppercase">Chat</span>
+        </div>
+    </footer>
+
+    <!-- JS Connection -->
+    <script src="../static/mood.js"></script>
+</body>
+</html>

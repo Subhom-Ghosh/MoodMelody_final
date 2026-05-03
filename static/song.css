@@ -1,0 +1,127 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+body {
+    font-family: 'Poppins', sans-serif;
+    text-align: center;
+    background: linear-gradient(-45deg, #ff758c, #ff7eb3, #6a85b6, #7d96c5);
+    background-size: 400% 400%;
+    animation: gradientBG 10s ease infinite;
+    color: white;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.container {
+    background: rgba(255, 255, 255, 0.15);
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    width: 300px;
+    transition: transform 0.3s ease-in-out;
+}
+
+.container:hover {
+    transform: scale(1.05);
+}
+
+.subtitle {
+    font-size: 18px;
+    font-weight: 300;
+    margin-bottom: 15px;
+}
+
+h1 {
+    font-size: 32px;
+    font-weight: 600;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+select, button {
+    padding: 12px;
+    margin: 10px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    outline: none;
+}
+
+select {
+    background: rgba(255, 255, 255, 0.8);
+    color: black;
+}
+
+select:hover {
+    background: rgba(255, 255, 255, 1);
+}
+
+button {
+    background: linear-gradient(90deg, #ff6b6b, #ff8e53);
+    color: white;
+    box-shadow: 0px 0px 15px rgba(255, 107, 107, 0.6);
+}
+
+button:hover {
+    background: linear-gradient(90deg, #ff8e53, #ff6b6b);
+    transform: scale(1.05);
+    box-shadow: 0px 0px 20px rgba(255, 107, 107, 1);
+}
+
+#song-link {
+    display: none;
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+#spotify-link {
+    font-size: 18px;
+    font-weight: bold;
+    color: #FFD700;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+#spotify-link:hover {
+    color: #FFA500;
+    text-decoration: underline;
+}
+
+.hidden {
+    display: none;
+}
+
+.abir {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: abirExplode 1s ease-out forwards;
+}
+
+@keyframes abirExplode {
+    0% {
+        opacity: 1;
+        transform: translate(0, 0) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(calc(50px * var(--x)), calc(50px * var(--y))) scale(0);
+    }
+}

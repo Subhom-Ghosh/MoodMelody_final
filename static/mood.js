@@ -55,3 +55,82 @@ async function analyzeMood() {
         actionBtn.classList.remove('opacity-50', 'cursor-not-allowed');
     }
 }
+
+//CHAT BOX
+
+
+async function sendChatMessage() {
+    const input = document.getElementById('chatInput');
+    const messagesDiv = document.getElementById('chatMessages');
+    const msg = input.value.trim();
+
+    if (!msg) return;
+
+    
+    messagesDiv.innerHTML += `<div class="bg-white/70 p-3 rounded-2xl self-end ml-auto max-w-[80%] shadow-sm"> ${msg} </div>`;
+    input.value = '';
+    
+    
+    const typingIndicator = document.createElement('div');
+    typingIndicator.id = 'typing';
+    typingIndicator.className = 'bg-rose-100 p-3 rounded-2xl self-start max-w-[80%] italic text-xs text-rose-400';
+    typingIndicator.innerText = "MoodMelody is thinking...";
+    messagesDiv.appendChild(typingIndicator);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+    try {
+        const response = await fetch('http://127.0.0.1:8000/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: msg })
+        });
+
+        const data = await response.json();
+
+        // ৩. "Typing..." সরিয়ে আসল উত্তর দেখানো
+        document.getElementById('typing').remove();
+        messagesDiv.innerHTML += `<div class="bg-rose-200/80 p-3 rounded-2xl self-start max-w-[80%] shadow-sm"> ${data.reply} </div>`;
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+    } catch (error) {
+        document.getElementById('typing').innerText = "Connection lost. Try again.";
+    }
+}
+
+
+// mood.js এর ভেতরে
+async function getSpotifySong() { // নিশ্চিত করুন এখানে async আছে
+    const input = document.getElementById('moodInput');
+    const btn = document.getElementById('findBtn');
+
+    if (!input.value.trim()) return alert("Please enter your mood!");
+
+    btn.innerText = "Finding your song...";
+    
+    try {
+        // ১. মুড অ্যানালাইসিস কল করা
+        const moodRes = await fetch('http://127.0.0.1:8000/analyze-mood', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: input.value })
+        });
+        const moodData = await moodRes.json();
+
+        // ২. Saavn API এর জন্য আপনার পাইথন এন্ডপয়েন্ট কল করা
+        const musicRes = await fetch(`http://127.0.0.1:8000/get-saavn-song?query=${encodeURIComponent(moodData.music)}`);
+        const musicData = await musicRes.json();
+
+        if (musicData.success) {
+            // প্লেয়ার আপডেট লজিক এখানে হবে
+            console.log("Song found:", musicData.song_name);
+            // উদাহরণ: document.getElementById('spotifyPlayer').src = musicData.audio_url;
+        } else {
+            alert("Music search failed: " + musicData.message);
+        }
+
+    } catch (error) {
+        console.error("Error details:", error);
+    } finally {
+        btn.innerText = "Find My Vibe";
+    }
+}

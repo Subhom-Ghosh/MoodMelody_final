@@ -10,11 +10,18 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #ff8488 0%, #fecfef 30%, #feada6 60%, #ff5202 100%);
+            background: linear-gradient(-45deg, #ff758c, #ff7eb3, #6a85b6, #7d96c5);
+            background-size: 400% 400%;
+            animation: gradientBG 10s ease infinite;
             background-attachment: fixed;
             height: 100vh;
             overflow: hidden;
             transition: background 0.8s ease; /* Smooth color transition */
+        }
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
         .glass-container {
             background: rgba(255, 255, 255, 0.25);
@@ -90,18 +97,22 @@
             <span class="text-xl">🏠</span>
             <span class="text-[10px] font-bold text-rose-900 uppercase">Home</span>
         </button>
-        <button class="feature-btn flex flex-col items-center gap-1 px-4 py-2 rounded-2xl">
-            <span class="text-xl"><i class="fa-solid fa-headphones fa-beat" style="color: rgb(177, 151, 252);"></i></span>
+        
+        <a href="song.html"><button class="feature-btn flex flex-col items-center gap-1 px-4 py-2 rounded-2xl">
+            <span class="text-xl"><i class="fa-solid fa-headphones fa-beat" style="color: rgb(251, 255, 28);"></i></span>
             <span class="text-[10px] font-bold text-rose-900 uppercase">Library</span>
         </button>
+        </a>
         <button class="feature-btn flex flex-col items-center gap-1 px-4 py-2 rounded-2xl">
             <span class="text-xl">📈</span>
             <span class="text-[10px] font-bold text-rose-900 uppercase">Stats</span>
         </button>
-        <button class="feature-btn flex flex-col items-center gap-1 px-4 py-2 rounded-2xl">
-            <span class="text-xl"><i class="fa-solid fa-message fa-shake" style="color: rgb(59, 79, 255);"></i></span>
-            <span class="text-[10px] font-bold text-rose-900 uppercase">Chat</span>
-        </button>
+        <a href="chat.html" class="feature-btn flex flex-col items-center gap-1 px-4 py-2 rounded-2xl">
+    <span class="text-xl">
+        <i class="fa-solid fa-message fa-shake" style="color: rgb(59, 79, 255);"></i>
+    </span>
+    <span class="text-[10px] font-bold text-rose-900 uppercase">Chat</span>
+</a>
         <button class="feature-btn flex flex-col items-center gap-1 px-4 py-2 rounded-2xl">
             <span class="text-xl">⚙️</span>
             <span class="text-[10px] font-bold text-rose-900 uppercase">Settings</span>
