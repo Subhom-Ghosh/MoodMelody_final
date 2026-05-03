@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoodMelody | Your Space</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #ff8488 0%, #fecfef 30%, #feada6 60%, #ff5202 100%);
+            background-attachment: fixed;
+            height: 100vh;
+            overflow: hidden;
+            transition: background 0.8s ease; /* Smooth color transition */
+        }
+        .glass-container {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+        }
+        .input-area {
+            background: rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .feature-btn {
+            transition: all 0.3s ease;
+        }
+        .feature-btn:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.4);
+        }
+    </style>
+</head>
+<body id="mainBody" class="flex flex-col items-center justify-between py-10 px-4">
+
+    <!-- Header -->
+    <header class="w-full max-w-4xl flex justify-between items-center px-6">
+        <div class="text-2xl font-black text-rose-700 tracking-tighter">MoodMelody</div>
+        <div class="w-10 h-10 rounded-full bg-white/50 border border-white/50 flex items-center justify-center font-bold text-rose-700">SG</div>
+    </header>
+
+    <!-- Main Interaction Box -->
+    <main id="mainAppBox" class="w-full max-w-md glass-container rounded-[2.5rem] p-8 flex flex-col items-center gap-6 relative border-2 border-transparent transition-all duration-500">
+        <div class="w-16 h-1.5 bg-rose-900/10 rounded-full mb-2"></div> 
+        
+        <div class="text-center">
+            <!-- ID Added -->
+            <h2 id="displayEmotion" class="text-2xl font-bold text-rose-900">How are you feeling?</h2>
+            <p class="text-rose-800/60 text-sm">Be honest, I'm listening.</p>
+        </div>
+
+        <!-- Chat/Input Box -->
+        <div class="w-full space-y-4">
+            <div class="input-area rounded-2xl p-4 min-h-[150px] flex flex-col justify-between">
+                <!-- ID Added -->
+                <textarea 
+    id="userEmotion"
+    class="bg-transparent border-none focus:ring-0 outline-none text-rose-900 placeholder-rose-700/40 resize-none w-full h-24"
+    placeholder="e.g., I'm feeling a bit overwhelmed with my project work today..."></textarea>
+                
+                <div class="flex justify-between items-center">
+                    <span class="text-[10px] uppercase font-bold text-rose-700/50 tracking-widest">AI Mood Analysis</span>
+                    <!-- ID and onclick Added -->
+                    <button id="actionBtn" onclick="analyzeMood()" class="bg-rose-600 hover:bg-rose-500 text-white px-5 py-2 rounded-xl text-sm font-bold shadow-lg transition-transform active:scale-95">
+                        Get Activity
+                    </button>
+                </div>
+            </div>
+
+            <!-- Result Box: ID added and structure updated to show music -->
+            <div id="resultBox" class="bg-white/40 p-4 rounded-2xl border border-white/40 hidden">
+                <p class="text-xs font-bold text-rose-800 mb-1 uppercase tracking-tight">Recommended Activity:</p>
+                <p id="activityText" class="text-rose-900 text-sm italic mb-3">...</p>
+                
+                <div class="pt-2 border-t border-rose-900/10">
+                    <p class="text-[10px] font-bold text-rose-800 mb-1 uppercase">Music Vibe:</p>
+                    <p id="musicText" class="text-rose-900 text-sm font-semibold italic">...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bottom Features Navigation -->
+    <footer class="w-full max-w-2xl flex justify-around items-center glass-container rounded-3xl p-4">
+        <button class="feature-btn flex flex-col items-center gap-1 px-4 py-2 rounded-2xl">
+            <span class="text-xl">🏠</span>
+            <span class="text-[10px] font-bold text-rose-900 uppercase">Home</span>
+        </button>
+        <button class="feature-btn flex flex-col items-center gap-1 px-4 py-2 rounded-2xl">
+            <span class="text-xl"><i class="fa-solid fa-headphones fa-beat" style="color: rgb(177, 151, 252);"></i></span>
+            <span class="text-[10px] font-bold text-rose-900 uppercase">Library</span>
+        </button>
+        <button class="feature-btn flex flex-col items-center gap-1 px-4 py-2 rounded-2xl">
+            <span class="text-xl">📈</span>
+            <span class="text-[10px] font-bold text-rose-900 uppercase">Stats</span>
+        </button>
+        <button class="feature-btn flex flex-col items-center gap-1 px-4 py-2 rounded-2xl">
+            <span class="text-xl"><i class="fa-solid fa-message fa-shake" style="color: rgb(59, 79, 255);"></i></span>
+            <span class="text-[10px] font-bold text-rose-900 uppercase">Chat</span>
+        </button>
+        <button class="feature-btn flex flex-col items-center gap-1 px-4 py-2 rounded-2xl">
+            <span class="text-xl">⚙️</span>
+            <span class="text-[10px] font-bold text-rose-900 uppercase">Settings</span>
+        </button>
+    </footer>
+
+    <!-- Ensure path matches your folder structure -->
+    <script src="../static/mood.js"></script>
+</body>
+</html>

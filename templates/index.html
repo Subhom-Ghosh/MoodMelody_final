@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoodMelody | Elevate Your Vibe</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            /* New Orangish-Pinkish Gradient */
+            background: linear-gradient(135deg, #feacac 0%, #fecfef 30%, #feada6 60%, #ff6d2a 100%);
+            background-attachment: fixed;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+        }
+        .hero-text {
+            background: linear-gradient(to right, #ffffff, #ffeaa7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0px 4px 10px rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800">
+
+    <!-- Header / Navbar -->
+    <header class="container mx-auto px-6 py-8 flex justify-between items-center">
+        <div class="text-2xl font-extrabold tracking-tighter flex items-center gap-2 text-rose-700">
+            <div class="w-8 h-8 bg-rose-500 rounded-full blur-[1px] animate-pulse"></div>
+            MoodMelody
+        </div>
+        <nav class="hidden md:flex items-center gap-8 text-sm font-semibold text-rose-900/80">
+            <a href="#" class="hover:text-rose-600 transition">Features</a>
+            <a href="#" class="hover:text-rose-600 transition">Library</a>
+            <div class="h-4 w-[1px] bg-rose-300"></div>
+            <button class="hover:text-rose-600 transition">Login</button>
+            <button class="bg-rose-600 hover:bg-rose-500 px-6 py-2.5 rounded-full text-white transition shadow-lg shadow-rose-500/30">
+                Sign Up
+            </button>
+        </nav>
+    </header>
+
+    <!-- Main Hero Section -->
+    <main class="container mx-auto px-6 pt-20 pb-32 flex flex-col items-center text-center">
+        <div class="glass-card px-5 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest text-rose-700 mb-6">
+            Your Personal Harmony
+        </div>
+        
+        <h1 class="text-5xl md:text-8xl font-black mb-8 leading-tight text-white drop-shadow-md">
+            Soundtrack your <br>
+            <span class="text-rose-600">Emotions.</span>
+        </h1>
+
+        <p class="max-w-2xl text-rose-900/70 text-lg md:text-xl mb-12 font-medium leading-relaxed">
+            Tell our chatbot how you feel, and MoodMelody will curate the perfect activity 
+            and song to lift your spirits or match your vibe.
+        </p>
+
+        <div class="flex flex-col sm:flex-row gap-4">
+            <button class="px-10 py-4 bg-rose-600 text-white font-bold rounded-2xl hover:bg-rose-700 transition-all transform hover:scale-105 active:scale-95 shadow-xl shadow-rose-500/20">
+                Get Started
+            </button>
+            <button class="px-10 py-4 glass-card text-rose-800 font-bold rounded-2xl hover:bg-white/30 transition-all">
+                Learn More
+            </button>
+        </div>
+
+        <!-- Music Wave Animation -->
+        <div class="mt-24 flex items-end gap-1.5 h-16">
+            <div class="w-2.5 h-8 bg-rose-400 rounded-full animate-bounce"></div>
+            <div class="w-2.5 h-14 bg-orange-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+            <div class="w-2.5 h-16 bg-pink-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+            <div class="w-2.5 h-10 bg-rose-500 rounded-full animate-bounce" style="animation-delay: 0.3s"></div>
+            <div class="w-2.5 h-13 bg-orange-300 rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
+        </div>
+    </main>
+
+    <footer class="container mx-auto px-6 py-8 text-center text-rose-900/50 text-sm font-medium">
+        © 2026 MoodMelody. Made for your well-being.
+    </footer>
+
+</body>
+</html>
