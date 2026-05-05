@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -14,24 +15,95 @@
             background-size: 400% 400%;
             animation: gradientBG 10s ease infinite;
             background-attachment: fixed;
-            height: 100vh;
-            overflow: hidden;
-            transition: background 0.8s ease; /* Smooth color transition */
+            min-height: 100vh;
+            overflow-x: hidden;
+            overflow-y: auto;
+            transition: background 0.8s ease;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.6);
         }
         @keyframes gradientBG {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
+        
+        /* Dark Mode Theme */
+        body.dark-theme {
+            background: linear-gradient(-45deg, #020617, #0f172a, #1e1b4b, #020617);
+        }
+        body.dark-theme .glass-container {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.3));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            border-left: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(255,255,255,0.05);
+        }
+        body.dark-theme .text-rose-950,
+        body.dark-theme .text-rose-900 {
+            color: #ffe4e6 !important; /* Very light rose for primary text */
+        }
+        body.dark-theme .text-rose-800 {
+            color: #fecdd3 !important; /* Soft rose for secondary text */
+        }
+        body.dark-theme .text-rose-700,
+        body.dark-theme .text-rose-600 {
+            color: #fda4af !important; /* Darker rose for accents/icons */
+        }
+        body.dark-theme .input-area {
+            background: rgba(15, 23, 42, 0.5);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        body.dark-theme .input-area:focus-within {
+            background: rgba(15, 23, 42, 0.7);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        body.dark-theme textarea {
+            color: #f8fafc !important;
+        }
+        body.dark-theme textarea::placeholder {
+            color: rgba(248, 250, 252, 0.4) !important;
+        }
+        body.dark-theme .bg-white\/50, 
+        body.dark-theme .bg-white\/70,
+        body.dark-theme .bg-white\/80,
+        body.dark-theme .bg-white\/90,
+        body.dark-theme .bg-white {
+            background-color: rgba(30, 41, 59, 0.8) !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+        }
         .glass-container {
-            background: rgba(255, 255, 255, 0.25);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.1));
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-top: 1px solid rgba(255, 255, 255, 0.8);
+            border-left: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15), inset 0 0 20px rgba(255,255,255,0.2);
         }
         .input-area {
-            background: rgba(255, 255, 255, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        .input-area:focus-within {
+            background: rgba(255, 255, 255, 0.7);
+            border-color: rgba(255, 255, 255, 0.9);
+            box-shadow: inset 0 4px 15px rgba(0, 0, 0, 0.05), 0 0 20px rgba(255,255,255,0.4);
         }
         .feature-btn {
             transition: all 0.3s ease;
@@ -40,6 +112,23 @@
             transform: translateY(-5px);
             background: rgba(255, 255, 255, 0.4);
         }
+        .abir {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: explode 0.5s forwards ease-out;
+            z-index: 100;
+        }
+
+        @keyframes explode {
+            to {
+                transform: translate(calc(var(--x) * 120px), calc(var(--y) * 120px));
+                opacity: 0;
+            }
+        }
+
     </style>
 </head>
 <body id="mainBody" class="flex flex-col items-center justify-between py-10 px-4">
@@ -47,64 +136,85 @@
     <!-- Header -->
     <header class="w-full max-w-4xl flex justify-between items-center px-6">
         <div class="text-2xl font-black text-rose-700 tracking-tighter">MoodMelody</div>
-        <div class="w-10 h-10 rounded-full bg-white/50 border border-white/50 flex items-center justify-center font-bold text-rose-700">SG</div>
+        <!-- নিশ্চিত করুন id="user-display" দেওয়া আছে -->
+<h1 id="user-display" class="text-3xl font-bold">Welcome!</h1>
+        <div class="relative">
+            <div id="user-initials" onclick="toggleProfileMenu()" class="w-10 h-10 rounded-full bg-white/70 border-2 border-rose-400 flex items-center justify-center font-bold text-rose-700 cursor-pointer shadow-md hover:scale-105 transition-transform"></div>
+            <!-- Profile Dropdown -->
+            <div id="profileDropdown" class="absolute right-0 mt-3 w-40 bg-white/80 backdrop-blur-xl border border-white/50 rounded-2xl shadow-xl hidden flex-col overflow-hidden z-50">
+                <button onclick="openSettings()" class="w-full text-left px-5 py-3 text-sm font-semibold text-rose-800 hover:bg-rose-100/50 transition-colors border-b border-rose-100 flex items-center gap-2">
+                    <i class="fa-solid fa-gear"></i> Settings
+                </button>
+                <button onclick="logoutUser()" class="w-full text-left px-5 py-3 text-sm font-semibold text-rose-800 hover:bg-rose-100/50 transition-colors flex items-center gap-2">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                </button>
+            </div>
+        </div>
     </header>
 
     <!-- Main Interaction Box -->
-    <main id="mainAppBox" class="w-full max-w-md glass-container rounded-[2.5rem] p-8 flex flex-col items-center gap-6 relative border-2 border-transparent transition-all duration-500">
-        <div class="w-16 h-1.5 bg-rose-900/10 rounded-full mb-2"></div> 
+    <main id="mainAppBox" class="w-full max-w-2xl glass-container rounded-[3rem] p-10 sm:p-12 flex flex-col items-center gap-8 relative transition-all duration-500 hover:shadow-[0_40px_80px_rgba(0,0,0,0.2)] group">
+        <div class="w-20 h-2 bg-rose-900/15 rounded-full mb-2 transition-all duration-300 group-hover:bg-rose-900/30 group-hover:w-24"></div> 
         
         <div class="text-center">
             <!-- ID Added -->
-            <h2 id="displayEmotion" class="text-2xl font-bold text-rose-900">How are you feeling?</h2>
-            <p class="text-rose-800/60 text-sm">Be honest, I'm listening.</p>
+            <h2 id="displayEmotion" class="text-3xl sm:text-4xl font-extrabold text-rose-900 tracking-tight mb-2 drop-shadow-sm">How are you feeling?</h2>
+            <p class="text-rose-800/70 text-base sm:text-lg font-medium">Be honest, I'm listening.</p>
         </div>
 
         <!-- Chat/Input Box -->
-        <div class="w-full space-y-4">
-            <div class="input-area rounded-2xl p-4 min-h-[150px] flex flex-col justify-between">
+        <div class="w-full space-y-6">
+            <div class="input-area rounded-3xl p-6 min-h-[200px] flex flex-col justify-between">
                 <!-- ID Added -->
                 <textarea 
     id="userEmotion"
-    class="bg-transparent border-none focus:ring-0 outline-none text-rose-900 placeholder-rose-700/40 resize-none w-full h-24"
+    class="bg-transparent border-none focus:ring-0 outline-none text-rose-900 placeholder-rose-700/40 resize-none w-full h-32 text-lg sm:text-xl leading-relaxed"
     placeholder="e.g., I'm feeling a bit overwhelmed with my project work today..."></textarea>
                 
-                <div class="flex justify-between items-center">
-                    <span class="text-[10px] uppercase font-bold text-rose-700/50 tracking-widest">AI Mood Analysis</span>
+                <div class="flex justify-between items-center mt-4 pt-4 border-t border-rose-900/10">
+                    <span class="text-xs uppercase font-extrabold text-rose-700/60 tracking-[0.2em]">AI Mood Analysis</span>
                     <!-- ID and onclick Added -->
-                    <button id="actionBtn" onclick="analyzeMood()" class="bg-rose-600 hover:bg-rose-500 text-white px-5 py-2 rounded-xl text-sm font-bold shadow-lg transition-transform active:scale-95">
+                    <button id="actionBtn" onclick="analyzeMood()" class="bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white px-8 py-3 rounded-2xl text-base font-bold shadow-[0_10px_20px_rgba(225,29,72,0.3)] transition-all duration-300 hover:shadow-[0_15px_25px_rgba(225,29,72,0.4)] hover:-translate-y-1 active:scale-95 active:translate-y-0">
                         Get Activity
                     </button>
                 </div>
             </div>
 
             <!-- Result Box: ID added and structure updated to show music -->
-            <div id="resultBox" class="bg-white/40 p-4 rounded-2xl border border-white/40 hidden">
-                <p class="text-xs font-bold text-rose-800 mb-1 uppercase tracking-tight">Recommended Activity:</p>
-                <p id="activityText" class="text-rose-900 text-sm italic mb-3">...</p>
+            <div id="resultBox" class="bg-white/50 p-6 rounded-3xl border border-white/60 hidden shadow-inner backdrop-blur-md">
+                <p class="text-sm font-extrabold text-rose-800 mb-2 uppercase tracking-widest opacity-80">Recommended Activity:</p>
+                <p id="activityText" class="text-rose-950 text-lg sm:text-xl italic mb-5 leading-relaxed">...</p>
                 
-                <div class="pt-2 border-t border-rose-900/10">
-                    <p class="text-[10px] font-bold text-rose-800 mb-1 uppercase">Music Vibe:</p>
-                    <p id="musicText" class="text-rose-900 text-sm font-semibold italic">...</p>
+                <div class="pt-4 border-t-2 border-rose-900/10">
+                    <p class="text-xs font-extrabold text-rose-800 mb-2 uppercase tracking-widest opacity-80">Music Vibe:</p>
+                    <p id="musicText" class="text-rose-900 text-base sm:text-lg font-bold italic">...</p>
                 </div>
             </div>
         </div>
     </main>
+    <!-- Stats Popup Overlay -->
+<div id="statsSection" class="hidden fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center">
+    <div class="bg-white p-6 rounded-3xl w-full max-w-lg relative" style="z-index: 100;"> <!-- z-index বাড়িয়ে দেওয়া হয়েছে -->
+        <button onclick="toggleStats()" class="absolute top-4 right-4 text-2xl text-gray-500">✕</button>
+        <h3 class="text-xl font-bold mb-4 text-rose-600">Your Weekly Mood Stats</h3>
+        
+        <!-- উচ্চতা (height) নিশ্চিত করুন -->
+        <div style="position: relative; height:300px; width:100%">
+            <canvas id="moodChart"></canvas>
+        </div>
+    </div>
+</div>
 
     <!-- Bottom Features Navigation -->
-    <footer class="w-full max-w-2xl flex justify-around items-center glass-container rounded-3xl p-4">
-        <button class="feature-btn flex flex-col items-center gap-1 px-4 py-2 rounded-2xl">
-            <span class="text-xl">🏠</span>
-            <span class="text-[10px] font-bold text-rose-900 uppercase">Home</span>
-        </button>
+    <footer class="w-full max-w-2xl flex justify-around items-center glass-container rounded-3xl p-4 mt-8">
         
         <a href="song.html"><button class="feature-btn flex flex-col items-center gap-1 px-4 py-2 rounded-2xl">
             <span class="text-xl"><i class="fa-solid fa-headphones fa-beat" style="color: rgb(251, 255, 28);"></i></span>
             <span class="text-[10px] font-bold text-rose-900 uppercase">Library</span>
         </button>
         </a>
-        <button class="feature-btn flex flex-col items-center gap-1 px-4 py-2 rounded-2xl">
-            <span class="text-xl">📈</span>
+        <button onclick="toggleStats()" class="feature-btn flex flex-col items-center gap-1 px-4 py-2 rounded-2xl">
+            <span class="text-xl text-rose-600"><i class="fa-solid fa-chart-area"></i></span>
             <span class="text-[10px] font-bold text-rose-900 uppercase">Stats</span>
         </button>
         <a href="chat.html" class="feature-btn flex flex-col items-center gap-1 px-4 py-2 rounded-2xl">
@@ -113,13 +223,57 @@
     </span>
     <span class="text-[10px] font-bold text-rose-900 uppercase">Chat</span>
 </a>
-        <button class="feature-btn flex flex-col items-center gap-1 px-4 py-2 rounded-2xl">
-            <span class="text-xl">⚙️</span>
-            <span class="text-[10px] font-bold text-rose-900 uppercase">Settings</span>
-        </button>
     </footer>
 
     <!-- Ensure path matches your folder structure -->
     <script src="../static/mood.js"></script>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex items-center justify-center">
+        <div class="bg-white/90 backdrop-blur-2xl p-8 rounded-[2rem] w-full max-w-md relative shadow-2xl border border-white">
+            <button onclick="closeSettings()" class="absolute top-5 right-5 text-gray-400 hover:text-rose-600 transition-colors text-xl">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 class="text-2xl font-extrabold text-rose-700 mb-6 flex items-center gap-2">
+                <i class="fa-solid fa-gear"></i> Preferences
+            </h3>
+            
+            <div class="space-y-5">
+                <!-- Theme Settings -->
+                <div class="flex justify-between items-center p-4 bg-rose-50/50 rounded-2xl border border-rose-100">
+                    <div>
+                        <p class="font-bold text-rose-900">Dark Mode</p>
+                        <p class="text-xs text-rose-700/60">Switch to a dark aesthetic</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="darkModeToggle" class="sr-only peer" onchange="toggleDarkMode()">
+                        <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-500"></div>
+                    </label>
+                </div>
+
+                <!-- Notifications -->
+                <div class="flex justify-between items-center p-4 bg-rose-50/50 rounded-2xl border border-rose-100">
+                    <div>
+                        <p class="font-bold text-rose-900">Daily Reminders</p>
+                        <p class="text-xs text-rose-700/60">Remind me to log my mood</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" class="sr-only peer" checked>
+                        <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-500"></div>
+                    </label>
+                </div>
+                
+                <!-- Account Info -->
+                <div class="p-4 bg-rose-50/50 rounded-2xl border border-rose-100">
+                    <p class="font-bold text-rose-900 mb-1">Account Info</p>
+                    <p id="settings-email" class="text-sm text-rose-700/80 font-medium">Loading...</p>
+                </div>
+            </div>
+            
+            <button onclick="closeSettings()" class="w-full mt-6 bg-rose-600 hover:bg-rose-500 text-white py-3 rounded-xl font-bold shadow-lg transition-transform active:scale-95">
+                Save Changes
+            </button>
+        </div>
+    </div>
 </body>
 </html>

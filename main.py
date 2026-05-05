@@ -4,6 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from google import genai
+import mysql.connector
+import bcrypt
 
 # Load environment variables from .env file
 load_dotenv()
@@ -55,8 +57,9 @@ async def analyze_mood(request: MoodRequest):
     2. Suggest a small, uplifting activity (max 12 words).
     3. Suggest a specific indian music with artist name according to the mood.
     4. Provide a Hex Color code that represents this mood.
+    5. Rate the mood on a scale of 1 to 10 (1=Extremely Bad/Angry, 5=Neutral, 10=Extremely Happy/Excited).
 
-    Format the response strictly as: Emotion | Activity | MusicVibe | HexColor
+    Format the response strictly as: Emotion | Activity | MusicVibe | HexColor | Score
     """
 
     try:
@@ -86,19 +89,26 @@ async def analyze_mood(request: MoodRequest):
         parts = response.text.strip().split('|')
 
         # Fallback logic if AI doesn't follow the '|' format perfectly
-        if len(parts) < 4:
+        if len(parts) < 5:
             return {
-                "emotion": "Neutral",
-                "activity": "Take a deep breath and listen to the sounds around you.",
-                "music": "Ambient",
-                "color": "#F3A683"
+                "emotion": parts[0].strip() if len(parts) > 0 else "Neutral",
+                "activity": parts[1].strip() if len(parts) > 1 else "Take a deep breath and listen to the sounds around you.",
+                "music": parts[2].strip() if len(parts) > 2 else "Ambient",
+                "color": parts[3].strip() if len(parts) > 3 else "#F3A683",
+                "score": 5
             }
+
+        try:
+            score = int(parts[4].strip())
+        except ValueError:
+            score = 5
 
         return {
             "emotion": parts[0].strip(),
             "activity": parts[1].strip(),
             "music": parts[2].strip(),
-            "color": parts[3].strip()
+            "color": parts[3].strip(),
+            "score": score
         }
 
     except Exception as e:
@@ -139,17 +149,8 @@ async def chat_with_ai(request: ChatRequest):
         raise HTTPException(status_code=500, detail=str(e))
     
 
-import spotipy
-from spotipy.oauth2 import SpotifyClientCredentials
 
-# Spotify Credentials (Spotify Developer Dashboard থেকে নিতে হবে)
-SPOTIPY_CLIENT_ID = 'your_client_id'
-SPOTIPY_CLIENT_SECRET = 'your_client_secret'
 
-sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=SPOTIPY_CLIENT_ID,
-                                                           client_secret=SPOTIPY_CLIENT_SECRET))
-
-# main.py তে এই নতুন এন্ডপয়েন্টটি যোগ করুন
 
 @app.get("/get-saavn-song")
 async def get_saavn_song(query: str):
@@ -191,5 +192,116 @@ async def get_saavn_song(query: str):
             return {"success": False, "message": "No song found"}
             
     except Exception as e:
-        print(f"Detailed Server Error: {str(e)}") # এটি আপনার টার্মিনালে এরর দেখাবে
+        print(f"Detailed Server Error: {str(e)}") 
         return {"success": False, "message": str(e)}
+    
+
+# ডাটাবেস কানেকশন ফাংশন
+def get_db_connection():
+    return mysql.connector.connect(
+        host="localhost",
+        user="root",      # আপনার MySQL ইউজারনেম
+        password="root", # আপনার MySQL পাসওয়ার্ড
+        database="MOODMELODYDB"
+    )
+
+# ডেটা মডেল
+class UserAuth(BaseModel):
+    username: str = None
+    email: str
+    password: str
+
+# --- এপিআই এন্ডপয়েন্টস ---
+
+@app.post("/signup")
+async def signup(user: UserAuth):
+    if len(user.password.encode("utf-8")) > 72:
+        raise HTTPException(status_code=400, detail="Password is too long (max 72 bytes)")
+    db = get_db_connection()
+    cursor = db.cursor()
+    
+    try:
+        # ইউজার আগে থেকেই আছে কিনা চেক করা
+        cursor.execute("SELECT * FROM users WHERE email = %s", (user.email,))
+        if cursor.fetchone():
+            raise HTTPException(status_code=400, detail="Email already registered!")
+
+        # পাসওয়ার্ড হ্যাশ করে ইনসার্ট করা
+        hashed_password = bcrypt.hashpw(user.password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+        query = "INSERT INTO users (username, email, password) VALUES (%s, %s, %s)"
+        cursor.execute(query, (user.username, user.email, hashed_password))
+        
+        db.commit()
+        return {"message": "Signup successful!"}
+    
+    except mysql.connector.Error as err:
+        return {"detail": str(err)}
+    finally:
+        cursor.close()
+        db.close()
+
+@app.post("/login")
+async def login(user: UserAuth):
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True) # ডিকশনারি ফরমেটে ডাটা আসবে
+    
+    try:
+        cursor.execute("SELECT * FROM users WHERE email = %s", (user.email,))
+        db_user = cursor.fetchone()
+
+        if not db_user:
+            raise HTTPException(status_code=400, detail="User not found!")
+
+        # পাসওয়ার্ড ভেরিফাই করা
+        if not bcrypt.checkpw(user.password.encode("utf-8"), db_user['password'].encode("utf-8")):
+            raise HTTPException(status_code=400, detail="Incorrect password!")
+
+        return {
+            "message": "Login successful!",
+            "username": db_user['username']
+        }
+        
+    finally:
+        cursor.close()
+        db.close()
+
+
+
+@app.post("/save-mood")
+async def save_mood(email: str, emotion: str, score: int = 5):
+    db = get_db_connection()
+    cursor = db.cursor()
+    try:
+        query = "INSERT INTO mood_history (user_email, emotion, score) VALUES (%s, %s, %s)"
+        cursor.execute(query, (email, emotion, score))
+        db.commit()
+        return {"message": "Mood saved!"}
+    except mysql.connector.Error as err:
+        print(f"Database Error: {err}")
+        raise HTTPException(status_code=400, detail=f"Database Error: {str(err)}")
+    finally:
+        cursor.close()
+        db.close()
+
+# সাপ্তাহিক স্ট্যাটাস পাওয়ার এন্ডপয়েন্ট
+@app.get("/get-stats")
+async def get_stats(email: str):
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+    try:
+        # সর্বশেষ ৭টি মুড ডেটা আনা
+        query = """
+            SELECT id, created_at, score, emotion 
+            FROM mood_history 
+            WHERE user_email = %s 
+            ORDER BY id DESC LIMIT 7
+        """
+        cursor.execute(query, (email,))
+        results = cursor.fetchall()
+        results.reverse() # ক্রমানুসারে দেখানোর জন্য উল্টে দেওয়া
+        return results
+    except mysql.connector.Error as err:
+        raise HTTPException(status_code=400, detail=f"Database Error: {str(err)}")
+    finally:
+        cursor.close()
+        db.close()

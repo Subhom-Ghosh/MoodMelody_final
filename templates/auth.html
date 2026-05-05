@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoodMelody | Auth</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;900&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #121212 0%, #2d1b2e 100%);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .glass-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* মাউস ইফেক্ট বা আবির ইফেক্ট এর জন্য CSS */
+        .abir {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: explode 0.5s forwards ease-out;
+            z-index: 100;
+        }
+
+        @keyframes explode {
+            to {
+                transform: translate(calc(var(--x) * 120px), calc(var(--y) * 120px));
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="glass-container p-10 rounded-[3rem] w-full max-w-md shadow-2xl relative z-10">
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-rose-500/20 rounded-2xl mb-4">
+                <i class="fa-solid fa-headphones-simple text-rose-500 text-3xl"></i>
+            </div>
+            <h2 id="authTitle" class="text-3xl font-black text-white">Welcome Back</h2>
+            <p id="authSubtitle" class="text-gray-400 text-sm mt-2">Please enter your details</p>
+        </div>
+        
+        <div class="flex flex-col gap-4">
+            <!-- Username field (hidden by default, only for Signup) -->
+            <div id="usernameContainer" class="hidden animate-in fade-in slide-in-from-top-2 duration-300">
+                <input id="username" type="text" placeholder="Username" 
+                       class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none focus:ring-2 focus:ring-rose-500 text-white placeholder-gray-500 transition-all">
+            </div>
+
+            <input id="email" type="email" placeholder="Email Address" 
+                   class="bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none focus:ring-2 focus:ring-rose-500 text-white placeholder-gray-500 transition-all">
+            
+            <input id="password" type="password" placeholder="Password" 
+                   class="bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none focus:ring-2 focus:ring-rose-500 text-white placeholder-gray-500 transition-all">
+            
+            <button id="authBtn" onclick="handleAuth()" class="bg-rose-600 hover:bg-rose-500 text-white font-bold py-4 rounded-2xl transition-all active:scale-95 shadow-lg mt-2">
+                Login
+            </button>
+        </div>
+        
+        <p class="mt-8 text-center text-sm text-gray-400">
+            <span id="toggleText">Don't have an account?</span> 
+            <a href="javascript:void(0)" onclick="toggleAuth()" class="text-rose-500 font-bold hover:underline ml-1">Sign Up</a>
+        </p>
+    </div>
+
+    <script>
+        let isLogin = true;
+
+        // লগইন এবং সাইনআপ এর মধ্যে টগল করার ফাংশন
+        function toggleAuth() {
+            isLogin = !isLogin;
+            const title = document.getElementById('authTitle');
+            const subtitle = document.getElementById('authSubtitle');
+            const btn = document.getElementById('authBtn');
+            const toggleLink = document.querySelector('a[onclick="toggleAuth()"]');
+            const toggleText = document.getElementById('toggleText');
+            const usernameContainer = document.getElementById('usernameContainer');
+
+            if (isLogin) {
+                title.innerText = "Welcome Back";
+                subtitle.innerText = "Please enter your details";
+                btn.innerText = "Login";
+                toggleText.innerText = "Don't have an account?";
+                toggleLink.innerText = "Sign Up";
+                usernameContainer.classList.add('hidden');
+            } else {
+                title.innerText = "Create Account";
+                subtitle.innerText = "Join the MoodMelody vibe";
+                btn.innerText = "Sign Up";
+                toggleText.innerText = "Already have an account?";
+                toggleLink.innerText = "Login";
+                usernameContainer.classList.remove('hidden');
+            }
+        }
+
+        // এপিআই কল করার ফাংশন
+        async function handleAuth() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const username = document.getElementById('username').value;
+            const btn = document.getElementById('authBtn');
+
+            if (!email || !password) return alert("All fields are required!");
+            if (!isLogin && !username) return alert("Please provide a username!");
+
+            btn.innerText = isLogin ? "Logging in..." : "Creating account...";
+            btn.disabled = true;
+
+            const endpoint = isLogin ? "/login" : "/signup";
+            const payload = isLogin ? { email, password } : { username, email, password };
+
+            try {
+                const response = await fetch(`http://127.0.0.1:8000${endpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    if (isLogin) {
+                        localStorage.setItem('username', data.username || email.split('@')[0]);
+                        localStorage.setItem('email', email);
+                        window.location.href = "mainpage.html"; // আপনার মূল পেজের লিঙ্কে পাঠিয়ে দিন
+                    } else {
+                        alert("Account created successfully! Please login.");
+                        toggleAuth();
+                    }
+                } else {
+                    alert(data.detail || "Authentication failed!");
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("Server connection failed!");
+            } finally {
+                btn.innerText = isLogin ? "Login" : "Sign Up";
+                btn.disabled = false;
+            }
+        }
+
+        // Particle effect
+        document.addEventListener("mousemove", function (e) {
+            for (let i = 0; i < 3; i++) {
+                let abir = document.createElement("div");
+                abir.className = "abir";
+                abir.style.left = `${e.pageX}px`;
+                abir.style.top = `${e.pageY}px`;
+
+                let colors = ["#f43f5e", "#fb7185", "#ffffff", "#881337"];
+                abir.style.background = colors[Math.floor(Math.random() * colors.length)];
+
+                abir.style.setProperty("--x", Math.random() * 2 - 1);
+                abir.style.setProperty("--y", Math.random() * 2 - 1);
+
+                document.body.appendChild(abir);
+                setTimeout(() => abir.remove(), 1000);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -20,6 +20,23 @@
         }
         #chatMessages::-webkit-scrollbar { width: 4px; }
         #chatMessages::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
+        
+        .abir {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: explode 0.5s forwards ease-out; /* Faster animation */
+            z-index: 100;
+        }
+
+        @keyframes explode {
+            to {
+                transform: translate(calc(var(--x) * 120px), calc(var(--y) * 120px));
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body class="flex flex-col items-center justify-between py-6 px-4">
@@ -30,7 +47,7 @@
             <i class="fa-solid fa-arrow-left text-xl"></i>
         </a>
         <div class="text-2xl font-black text-rose-700">MoodMelody Chat</div>
-        <div class="w-10 h-10 rounded-full bg-white/50 border border-white/50 flex items-center justify-center font-bold text-rose-700">SG</div>
+        <div id="user-initials" class="w-10 h-10 rounded-full bg-white/50 border border-white/50 flex items-center justify-center font-bold text-rose-700"></div>
     </header>
 
     <!-- Chat Box (Wider version) -->
