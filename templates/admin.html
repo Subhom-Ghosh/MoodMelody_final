@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoodMelody Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(244, 114, 182, 0.22), transparent 30%),
+                radial-gradient(circle at bottom right, rgba(251, 146, 60, 0.22), transparent 30%),
+                linear-gradient(135deg, #160f29 0%, #2a163d 40%, #101827 100%);
+            min-height: 100vh;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-card {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, rgba(244, 114, 182, 0.5), rgba(251, 146, 60, 0.5));
+        }
+
+        .stat-card.users::before {
+            background: linear-gradient(90deg, rgba(59, 130, 246, 0.8), rgba(139, 92, 246, 0.8));
+        }
+
+        .stat-card.entries::before {
+            background: linear-gradient(90deg, rgba(34, 197, 94, 0.8), rgba(59, 130, 246, 0.8));
+        }
+
+        .stat-card.admin::before {
+            background: linear-gradient(90deg, rgba(244, 114, 182, 0.8), rgba(251, 146, 60, 0.8));
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.9), rgba(168, 85, 247, 0.9));
+            border: 1px solid rgba(236, 72, 153, 0.5);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, rgba(236, 72, 153, 1), rgba(168, 85, 247, 1));
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(236, 72, 153, 0.4);
+            border-color: rgba(236, 72, 153, 0.8);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        table tbody tr {
+            transition: all 0.2s ease;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-bottom-color: rgba(255, 255, 255, 0.1);
+        }
+
+        table thead {
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 2px solid rgba(255, 255, 255, 0.15);
+        }
+
+        table thead th {
+            font-weight: 600;
+            font-size: 0.875rem;
+            letter-spacing: 0.05em;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .header-icon {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.2), rgba(168, 85, 247, 0.2));
+            padding: 0.75rem;
+            border-radius: 1rem;
+            display: inline-block;
+            margin-right: 1rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #fbbf24 0%, #f87171 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .loading {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            background: rgba(236, 72, 153, 0.2);
+            color: rgba(236, 72, 153, 1);
+            border: 1px solid rgba(236, 72, 153, 0.3);
+        }
+
+        .emotion-badge {
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-white">
+    <div class="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-12">
+            <div>
+                <p class="text-sm uppercase tracking-[0.3em] text-rose-200/80 flex items-center">
+                    <i class="fas fa-chart-line mr-2"></i>MoodMelody Admin
+                </p>
+                <h1 class="text-4xl md:text-5xl font-extrabold mt-2 flex items-center">
+                    <span class="header-icon"><i class="fas fa-sliders-h text-rose-400"></i></span>
+                    Dashboard
+                </h1>
+            </div>
+            <button id="logoutBtn" class="btn-secondary rounded-full px-6 py-3 font-semibold flex items-center gap-2 whitespace-nowrap">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </button>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid gap-6 md:grid-cols-3 mb-12">
+            <div class="glass-card stat-card users rounded-3xl p-8 relative">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <p class="text-sm text-white/70 uppercase tracking-[0.1em] font-semibold">Total Users</p>
+                        <p id="totalUsers" class="mt-4 text-5xl font-extrabold">0</p>
+                        <p class="mt-3 text-xs text-white/60">Active users in system</p>
+                    </div>
+                    <div class="text-3xl opacity-20">
+                        <i class="fas fa-users text-blue-400"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card stat-card entries rounded-3xl p-8 relative">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <p class="text-sm text-white/70 uppercase tracking-[0.1em] font-semibold">Mood Entries</p>
+                        <p id="totalEntries" class="mt-4 text-5xl font-extrabold">0</p>
+                        <p class="mt-3 text-xs text-white/60">Total emotion records</p>
+                    </div>
+                    <div class="text-3xl opacity-20">
+                        <i class="fas fa-smile text-green-400"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card stat-card admin rounded-3xl p-8 relative">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <p class="text-sm text-white/70 uppercase tracking-[0.1em] font-semibold">Admin Account</p>
+                        <p id="adminIdentity" class="mt-4 text-lg font-bold break-all">-</p>
+                        <p class="mt-3 text-xs text-white/60">Logged in as</p>
+                    </div>
+                    <div class="text-3xl opacity-20">
+                        <i class="fas fa-user-shield text-orange-400"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add User Section -->
+        <div class="glass-card rounded-3xl p-8 mb-12">
+            <div>
+                <h2 class="section-title flex items-center gap-3 mb-2">
+                    <i class="fas fa-user-plus"></i>Add New User
+                </h2>
+                <p class="text-white/60 text-sm mb-6">Create a new user account</p>
+            </div>
+
+            <form id="addUserForm" class="space-y-4">
+                <div class="grid gap-4 md:grid-cols-3">
+                    <div>
+                        <label class="block text-sm font-semibold text-white/80 mb-2">
+                            <i class="fas fa-user mr-2"></i>Username
+                        </label>
+                        <input type="text" id="newUsername" placeholder="Enter username" 
+                            class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:border-rose-400 focus:bg-white/15 transition-all"
+                            required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-white/80 mb-2">
+                            <i class="fas fa-envelope mr-2"></i>Email
+                        </label>
+                        <input type="email" id="newEmail" placeholder="user@example.com" 
+                            class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:border-rose-400 focus:bg-white/15 transition-all"
+                            required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-white/80 mb-2">
+                            <i class="fas fa-lock mr-2"></i>Password
+                        </label>
+                        <input type="password" id="newPassword" placeholder="Enter password" 
+                            class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:border-rose-400 focus:bg-white/15 transition-all"
+                            required>
+                    </div>
+                </div>
+                <div class="flex justify-end">
+                    <button type="submit" class="btn-primary rounded-full px-6 py-3 font-semibold flex items-center gap-2">
+                        <i class="fas fa-plus"></i>
+                        Add User
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Users Section -->
+        <div class="glass-card rounded-3xl p-8 mb-12">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
+                <div>
+                    <h2 class="section-title flex items-center gap-3">
+                        <i class="fas fa-table"></i>User Management
+                    </h2>
+                    <p class="text-white/60 text-sm mt-2">Overview of all registered users</p>
+                </div>
+                <button id="refreshBtn" class="btn-primary rounded-full px-6 py-3 font-semibold flex items-center gap-2">
+                    <i class="fas fa-redo"></i>
+                    Refresh
+                </button>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr>
+                            <th class="py-4 px-4 text-left font-semibold">
+                                <i class="fas fa-user text-blue-400 mr-2"></i>Username
+                            </th>
+                            <th class="py-4 px-4 text-left font-semibold">
+                                <i class="fas fa-envelope text-pink-400 mr-2"></i>Email
+                            </th>
+                            <th class="py-4 px-4 text-left font-semibold">
+                                <i class="fas fa-chart-bar text-green-400 mr-2"></i>Mood Entries
+                            </th>
+                            <th class="py-4 px-4 text-left font-semibold">
+                                <i class="fas fa-star text-yellow-400 mr-2"></i>Avg Score
+                            </th>
+                            <th class="py-4 px-4 text-left font-semibold">
+                                <i class="fas fa-clock text-purple-400 mr-2"></i>Last Activity
+                            </th>
+                            <th class="py-4 px-4 text-center font-semibold">
+                                <i class="fas fa-cog text-gray-400 mr-2"></i>Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Recent Activity Section -->
+        <div class="glass-card rounded-3xl p-8">
+            <div>
+                <h2 class="section-title flex items-center gap-3 mb-2">
+                    <i class="fas fa-heart"></i>Recent Mood Activity
+                </h2>
+                <p class="text-white/60 text-sm mb-6">Latest emotional entries from users</p>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr>
+                            <th class="py-4 px-4 text-left font-semibold">
+                                <i class="fas fa-envelope text-pink-400 mr-2"></i>User Email
+                            </th>
+                            <th class="py-4 px-4 text-left font-semibold">
+                                <i class="fas fa-grin-alt text-yellow-400 mr-2"></i>Emotion
+                            </th>
+                            <th class="py-4 px-4 text-left font-semibold">
+                                <i class="fas fa-thermometer-half text-orange-400 mr-2"></i>Score
+                            </th>
+                            <th class="py-4 px-4 text-left font-semibold">
+                                <i class="fas fa-calendar-alt text-purple-400 mr-2"></i>Timestamp
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="moodsTable"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        if (window.location.protocol === "file:") {
+            window.location.replace("http://127.0.0.1:8000/admin.html");
+        }
+
+        const adminEmail = localStorage.getItem('adminEmail');
+        const adminPassword = localStorage.getItem('adminPassword');
+
+        if (!adminEmail || !adminPassword) {
+            window.location.replace('/auth.html');
+        }
+
+        document.getElementById('adminIdentity').innerText = adminEmail || '-';
+
+        function formatDate(value) {
+            if (!value) return '-';
+            return new Date(value).toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function getEmotionEmoji(emotion) {
+            const emotionMap = {
+                'happy': '😊',
+                'sad': '😢',
+                'angry': '😠',
+                'anxious': '😰',
+                'peaceful': '😌',
+                'excited': '🤩',
+                'neutral': '😐',
+                'confused': '😕'
+            };
+            return emotionMap[emotion?.toLowerCase()] || '💭';
+        }
+
+        function getEmotionColor(emotion) {
+            const colorMap = {
+                'happy': 'bg-yellow-500/30 text-yellow-200 border-yellow-500/50',
+                'sad': 'bg-blue-500/30 text-blue-200 border-blue-500/50',
+                'angry': 'bg-red-500/30 text-red-200 border-red-500/50',
+                'anxious': 'bg-orange-500/30 text-orange-200 border-orange-500/50',
+                'peaceful': 'bg-green-500/30 text-green-200 border-green-500/50',
+                'excited': 'bg-purple-500/30 text-purple-200 border-purple-500/50',
+                'neutral': 'bg-gray-500/30 text-gray-200 border-gray-500/50',
+                'confused': 'bg-indigo-500/30 text-indigo-200 border-indigo-500/50'
+            };
+            return colorMap[emotion?.toLowerCase()] || 'bg-white/20 text-white/80 border-white/30';
+        }
+
+        function logoutAdmin() {
+            localStorage.removeItem('adminEmail');
+            localStorage.removeItem('adminPassword');
+            localStorage.removeItem('username');
+            localStorage.removeItem('email');
+            window.location.href = '/auth.html';
+        }
+
+        async function deleteUser(email) {
+            if (!confirm(`Are you sure you want to delete user: ${email}?\n\nThis action cannot be undone.`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/admin/delete-user`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        admin_email: adminEmail,
+                        admin_password: adminPassword,
+                        user_email: email
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Failed to delete user');
+                }
+
+                alert('User deleted successfully');
+                await loadAdminData();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        async function addUser(username, email, password) {
+            try {
+                const response = await fetch(`/admin/add-user`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        admin_email: adminEmail,
+                        admin_password: adminPassword,
+                        username: username,
+                        email: email,
+                        password: password
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Failed to add user');
+                }
+
+                alert('User added successfully');
+                document.getElementById('addUserForm').reset();
+                await loadAdminData();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        async function loadAdminData() {
+            try {
+                const response = await fetch(`/admin/users?admin_email=${encodeURIComponent(adminEmail)}&admin_password=${encodeURIComponent(adminPassword)}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Failed to load admin data');
+                }
+
+                const users = Array.isArray(data.users) ? data.users : [];
+                const moods = Array.isArray(data.recent_moods) ? data.recent_moods : [];
+
+                document.getElementById('totalUsers').innerText = users.length;
+                document.getElementById('totalEntries').innerText = users.reduce((sum, user) => sum + Number(user.mood_entries || 0), 0);
+
+                const usersTable = document.getElementById('usersTable');
+                usersTable.innerHTML = users.map(user => `
+                    <tr>
+                        <td class="py-4 px-4 font-semibold">
+                            <span class="inline-flex items-center gap-2">
+                                <i class="fas fa-circle text-green-400 text-xs"></i>
+                                ${user.username || '-'}
+                            </span>
+                        </td>
+                        <td class="py-4 px-4 text-white/90">${user.email}</td>
+                        <td class="py-4 px-4">
+                            <span class="badge" style="background: rgba(59, 130, 246, 0.2); color: rgba(96, 165, 250, 1); border-color: rgba(59, 130, 246, 0.5);">
+                                <i class="fas fa-chart-line mr-1"></i>${user.mood_entries || 0}
+                            </span>
+                        </td>
+                        <td class="py-4 px-4">
+                            <span class="text-amber-300 font-semibold">
+                                <i class="fas fa-star"></i> ${user.average_score !== null ? user.average_score.toFixed(1) : '-'}
+                            </span>
+                        </td>
+                        <td class="py-4 px-4 text-white/70 text-xs">
+                            <i class="fas fa-history mr-1"></i>${formatDate(user.last_mood_at)}
+                        </td>
+                        <td class="py-4 px-4 text-center">
+                            <button onclick="deleteUser('${user.email}')" class="inline-flex items-center gap-2 bg-red-500/30 text-red-200 border border-red-500/50 rounded-lg px-3 py-2 hover:bg-red-500/50 hover:border-red-400 transition-all font-semibold text-sm">
+                                <i class="fas fa-trash"></i>Delete
+                            </button>
+                        </td>
+                    </tr>
+                `).join('') || `
+                    <tr>
+                        <td colspan="6" class="py-8 text-center text-white/50">
+                            <i class="fas fa-inbox text-3xl mb-2"></i>
+                            <p class="mt-2">No users found</p>
+                        </td>
+                    </tr>
+                `;
+
+                const moodsTable = document.getElementById('moodsTable');
+                moodsTable.innerHTML = moods.map(mood => `
+                    <tr>
+                        <td class="py-4 px-4 text-white/90">${mood.user_email}</td>
+                        <td class="py-4 px-4">
+                            <span class="emotion-badge border ${getEmotionColor(mood.emotion)}">
+                                ${getEmotionEmoji(mood.emotion)} ${mood.emotion.charAt(0).toUpperCase() + mood.emotion.slice(1)}
+                            </span>
+                        </td>
+                        <td class="py-4 px-4">
+                            <span class="inline-flex items-center gap-1 bg-white/10 px-3 py-1 rounded-full text-sm">
+                                <i class="fas fa-fire text-orange-400"></i>
+                                <span class="font-semibold">${mood.score}</span>
+                            </span>
+                        </td>
+                        <td class="py-4 px-4 text-white/70 text-xs">
+                            ${formatDate(mood.created_at)}
+                        </td>
+                    </tr>
+                `).join('') || `
+                    <tr>
+                        <td colspan="4" class="py-8 text-center text-white/50">
+                            <i class="fas fa-inbox text-3xl mb-2"></i>
+                            <p class="mt-2">No mood activity found</p>
+                        </td>
+                    </tr>
+                `;
+            } catch (error) {
+                console.error('Error loading data:', error);
+                throw error;
+            }
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', logoutAdmin);
+        
+        document.getElementById('addUserForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('newUsername').value;
+            const email = document.getElementById('newEmail').value;
+            const password = document.getElementById('newPassword').value;
+
+            if (!username || !email || !password) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            await addUser(username, email, password);
+        });
+
+        document.getElementById('refreshBtn').addEventListener('click', async () => {
+            try {
+                document.getElementById('refreshBtn').disabled = true;
+                document.getElementById('refreshBtn').classList.add('loading');
+                await loadAdminData();
+                document.getElementById('refreshBtn').classList.remove('loading');
+                document.getElementById('refreshBtn').disabled = false;
+            } catch (error) {
+                alert(error.message);
+                document.getElementById('refreshBtn').classList.remove('loading');
+                document.getElementById('refreshBtn').disabled = false;
+            }
+        });
+
+        loadAdminData().catch(error => {
+            alert(error.message);
+            logoutAdmin();
+        });
+    </script>
+</body>
+</html>

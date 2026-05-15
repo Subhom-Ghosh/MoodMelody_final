@@ -143,7 +143,15 @@
                     if (isLogin) {
                         localStorage.setItem('username', data.username || email.split('@')[0]);
                         localStorage.setItem('email', email);
-                        window.location.href = "/mainpage.html"; // আপনার মূল পেজের লিঙ্কে পাঠিয়ে দিন
+                        if (data.role === 'admin') {
+                            localStorage.setItem('adminEmail', email);
+                            localStorage.setItem('adminPassword', password);
+                            window.location.href = "/admin.html";
+                        } else {
+                            localStorage.removeItem('adminEmail');
+                            localStorage.removeItem('adminPassword');
+                            window.location.href = "/mainpage.html";
+                        }
                     } else {
                         alert("Account created successfully! Please login.");
                         toggleAuth();

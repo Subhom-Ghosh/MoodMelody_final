@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -15,6 +15,8 @@ from psycopg2.extras import RealDictCursor
 load_dotenv()
 API_KEY = os.getenv("GEMINI_API_KEY")
 DATABASE_URL = os.getenv("DATABASE_URL")
+ADMIN_EMAIL = "s@gmail.com"
+ADMIN_PASSWORD = "admin"
 
 if not API_KEY:
     raise ValueError("CRITICAL ERROR: GEMINI_API_KEY not found in .env file.")
@@ -68,6 +70,11 @@ async def chat_page():
 @app.get("/song.html")
 async def song_page():
     return FileResponse(TEMPLATES_DIR / "song.html")
+
+
+@app.get("/admin.html")
+async def admin_page():
+    return FileResponse(TEMPLATES_DIR / "admin.html")
 
 @app.get("/models")
 async def get_available_models():
@@ -245,6 +252,75 @@ class UserAuth(BaseModel):
     password: str
 
 
+class AdminAddUser(BaseModel):
+    admin_email: str
+    admin_password: str
+    username: str
+    email: str
+    password: str
+
+
+class AdminDeleteUser(BaseModel):
+    admin_email: str
+    admin_password: str
+    user_email: str
+
+
+def verify_admin(email: str, password: str):
+    if email != ADMIN_EMAIL or password != ADMIN_PASSWORD:
+        raise HTTPException(status_code=403, detail="Admin access denied")
+
+
+@app.post("/admin-login")
+async def admin_login(user: UserAuth):
+    verify_admin(user.email, user.password)
+    return {
+        "message": "Admin login successful!",
+        "email": ADMIN_EMAIL,
+        "role": "admin"
+    }
+
+
+@app.get("/admin/users")
+async def get_admin_users(admin_email: str, admin_password: str):
+    verify_admin(admin_email, admin_password)
+    db = get_db_connection()
+    cursor = db.cursor(cursor_factory=RealDictCursor)
+    try:
+        cursor.execute(
+            """
+            SELECT
+                u.username,
+                u.email,
+                COUNT(m.id) AS mood_entries,
+                ROUND(AVG(m.score)::numeric, 2) AS average_score,
+                MAX(m.created_at) AS last_mood_at
+            FROM users u
+            LEFT JOIN mood_history m ON m.user_email = u.email
+            GROUP BY u.username, u.email
+            ORDER BY u.email
+            """
+        )
+        users = cursor.fetchall()
+
+        cursor.execute(
+            """
+            SELECT user_email, emotion, score, created_at
+            FROM mood_history
+            ORDER BY created_at DESC
+            LIMIT 50
+            """
+        )
+        recent_moods = cursor.fetchall()
+
+        return {"users": users, "recent_moods": recent_moods}
+    except psycopg2.Error as err:
+        raise HTTPException(status_code=400, detail=f"Database Error: {str(err)}")
+    finally:
+        cursor.close()
+        db.close()
+
+
 
 @app.post("/signup")
 async def signup(user: UserAuth):
@@ -275,6 +351,13 @@ async def signup(user: UserAuth):
 
 @app.post("/login")
 async def login(user: UserAuth):
+    if user.email == ADMIN_EMAIL and user.password == ADMIN_PASSWORD:
+        return {
+            "message": "Admin login successful!",
+            "username": "Admin",
+            "role": "admin"
+        }
+
     db = get_db_connection()
     cursor = db.cursor(cursor_factory=RealDictCursor)
     
@@ -333,6 +416,66 @@ async def get_stats(email: str):
         results = cursor.fetchall()
         results.reverse() 
         return results
+    except psycopg2.Error as err:
+        raise HTTPException(status_code=400, detail=f"Database Error: {str(err)}")
+    finally:
+        cursor.close()
+        db.close()
+
+
+@app.post("/admin/add-user")
+async def add_user_admin(data: AdminAddUser):
+    verify_admin(data.admin_email, data.admin_password)
+    
+    if not data.username or not data.email or not data.password:
+        raise HTTPException(status_code=400, detail="Missing required fields")
+    
+    if len(data.password.encode("utf-8")) > 72:
+        raise HTTPException(status_code=400, detail="Password is too long (max 72 bytes)")
+    
+    db = get_db_connection()
+    cursor = db.cursor()
+    try:
+        cursor.execute("SELECT * FROM users WHERE email = %s", (data.email,))
+        if cursor.fetchone():
+            raise HTTPException(status_code=400, detail="Email already registered!")
+        
+        hashed_password = bcrypt.hashpw(data.password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+        query = "INSERT INTO users (username, email, password) VALUES (%s, %s, %s)"
+        cursor.execute(query, (data.username, data.email, hashed_password))
+        db.commit()
+        
+        return {"message": "User added successfully!"}
+    except psycopg2.Error as err:
+        raise HTTPException(status_code=400, detail=f"Database Error: {str(err)}")
+    finally:
+        cursor.close()
+        db.close()
+
+
+@app.delete("/admin/delete-user")
+async def delete_user_admin(data: AdminDeleteUser):
+    verify_admin(data.admin_email, data.admin_password)
+    
+    if not data.user_email:
+        raise HTTPException(status_code=400, detail="User email is required")
+    
+    db = get_db_connection()
+    cursor = db.cursor()
+    try:
+        # Check if user exists
+        cursor.execute("SELECT * FROM users WHERE email = %s", (data.user_email,))
+        if not cursor.fetchone():
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Delete all mood entries for this user first
+        cursor.execute("DELETE FROM mood_history WHERE user_email = %s", (data.user_email,))
+        
+        # Delete the user
+        cursor.execute("DELETE FROM users WHERE email = %s", (data.user_email,))
+        db.commit()
+        
+        return {"message": "User deleted successfully!"}
     except psycopg2.Error as err:
         raise HTTPException(status_code=400, detail=f"Database Error: {str(err)}")
     finally:
