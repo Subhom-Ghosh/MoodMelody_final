@@ -208,16 +208,16 @@
     <!-- Bottom Features Navigation -->
     <footer class="w-full max-w-2xl flex justify-around items-center glass-container rounded-3xl p-4 mt-8">
         
-        <a href="song.html"><button class="feature-btn flex flex-col items-center gap-1 px-4 py-2 rounded-2xl">
+        <a href="/song.html"><button class="feature-btn flex flex-col items-center gap-1 px-4 py-2 rounded-2xl">
             <span class="text-xl"><i class="fa-solid fa-headphones fa-beat" style="color: rgb(251, 255, 28);"></i></span>
             <span class="text-[10px] font-bold text-rose-900 uppercase">Library</span>
         </button>
         </a>
-        <button onclick="toggleStats()" class="feature-btn flex flex-col items-center gap-1 px-4 py-2 rounded-2xl">
+        <button id="statsBtn" type="button" class="feature-btn flex flex-col items-center gap-1 px-4 py-2 rounded-2xl">
             <span class="text-xl text-rose-600"><i class="fa-solid fa-chart-area"></i></span>
             <span class="text-[10px] font-bold text-rose-900 uppercase">Stats</span>
         </button>
-        <a href="chat.html" class="feature-btn flex flex-col items-center gap-1 px-4 py-2 rounded-2xl">
+        <a href="/chat.html" class="feature-btn flex flex-col items-center gap-1 px-4 py-2 rounded-2xl">
     <span class="text-xl">
         <i class="fa-solid fa-message fa-shake" style="color: rgb(59, 79, 255);"></i>
     </span>
@@ -226,7 +226,7 @@
     </footer>
 
     <!-- Ensure path matches your folder structure -->
-    <script src="../static/mood.js"></script>
+    <script src="/static/mood.js"></script>
 
     <!-- Settings Modal -->
     <div id="settingsModal" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex items-center justify-center">

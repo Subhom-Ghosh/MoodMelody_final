@@ -1,21 +1,33 @@
 import os
+from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from google import genai
-import mysql.connector
 import bcrypt
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
 # Load environment variables from .env file
 load_dotenv()
 API_KEY = os.getenv("GEMINI_API_KEY")
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 if not API_KEY:
     raise ValueError("CRITICAL ERROR: GEMINI_API_KEY not found in .env file.")
 
+if not DATABASE_URL:
+    raise ValueError("CRITICAL ERROR: DATABASE_URL not found in .env file.")
+
+BASE_DIR = Path(__file__).resolve().parent
+TEMPLATES_DIR = BASE_DIR / "templates"
+
 # Initialize FastAPI app
 app = FastAPI(title="MoodMelody API")
+app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 
 # Enable CORS (Required for your HTML/Frontend to communicate with this API)
 app.add_middleware(
@@ -35,7 +47,27 @@ class MoodRequest(BaseModel):
 
 @app.get("/")
 async def root():
-    return {"message": "MoodMelody AI Server is Running!"}
+    return FileResponse(TEMPLATES_DIR / "index.html")
+
+
+@app.get("/auth.html")
+async def auth_page():
+    return FileResponse(TEMPLATES_DIR / "auth.html")
+
+
+@app.get("/mainpage.html")
+async def mainpage():
+    return FileResponse(TEMPLATES_DIR / "mainpage.html")
+
+
+@app.get("/chat.html")
+async def chat_page():
+    return FileResponse(TEMPLATES_DIR / "chat.html")
+
+
+@app.get("/song.html")
+async def song_page():
+    return FileResponse(TEMPLATES_DIR / "song.html")
 
 @app.get("/models")
 async def get_available_models():
@@ -196,22 +228,23 @@ async def get_saavn_song(query: str):
         return {"success": False, "message": str(e)}
     
 
-# ডাটাবেস কানেকশন ফাংশন
-def get_db_connection():
-    return mysql.connector.connect(
-        host="localhost",
-        user="root",      # আপনার MySQL ইউজারনেম
-        password="root", # আপনার MySQL পাসওয়ার্ড
-        database="MOODMELODYDB"
-    )
 
-# ডেটা মডেল
+def get_db_connection():
+    try:
+        return psycopg2.connect(DATABASE_URL)
+    except psycopg2.OperationalError as err:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Database connection failed: {str(err)}"
+        ) from err
+
+
 class UserAuth(BaseModel):
     username: str = None
     email: str
     password: str
 
-# --- এপিআই এন্ডপয়েন্টস ---
+
 
 @app.post("/signup")
 async def signup(user: UserAuth):
@@ -221,12 +254,12 @@ async def signup(user: UserAuth):
     cursor = db.cursor()
     
     try:
-        # ইউজার আগে থেকেই আছে কিনা চেক করা
+      
         cursor.execute("SELECT * FROM users WHERE email = %s", (user.email,))
         if cursor.fetchone():
             raise HTTPException(status_code=400, detail="Email already registered!")
 
-        # পাসওয়ার্ড হ্যাশ করে ইনসার্ট করা
+       
         hashed_password = bcrypt.hashpw(user.password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
         query = "INSERT INTO users (username, email, password) VALUES (%s, %s, %s)"
         cursor.execute(query, (user.username, user.email, hashed_password))
@@ -234,7 +267,7 @@ async def signup(user: UserAuth):
         db.commit()
         return {"message": "Signup successful!"}
     
-    except mysql.connector.Error as err:
+    except psycopg2.Error as err:
         return {"detail": str(err)}
     finally:
         cursor.close()
@@ -243,7 +276,7 @@ async def signup(user: UserAuth):
 @app.post("/login")
 async def login(user: UserAuth):
     db = get_db_connection()
-    cursor = db.cursor(dictionary=True) # ডিকশনারি ফরমেটে ডাটা আসবে
+    cursor = db.cursor(cursor_factory=RealDictCursor)
     
     try:
         cursor.execute("SELECT * FROM users WHERE email = %s", (user.email,))
@@ -252,13 +285,13 @@ async def login(user: UserAuth):
         if not db_user:
             raise HTTPException(status_code=400, detail="User not found!")
 
-        # পাসওয়ার্ড ভেরিফাই করা
-        if not bcrypt.checkpw(user.password.encode("utf-8"), db_user['password'].encode("utf-8")):
+        
+        if not bcrypt.checkpw(user.password.encode("utf-8"), db_user["password"].encode("utf-8")):
             raise HTTPException(status_code=400, detail="Incorrect password!")
 
         return {
             "message": "Login successful!",
-            "username": db_user['username']
+            "username": db_user["username"]
         }
         
     finally:
@@ -276,20 +309,20 @@ async def save_mood(email: str, emotion: str, score: int = 5):
         cursor.execute(query, (email, emotion, score))
         db.commit()
         return {"message": "Mood saved!"}
-    except mysql.connector.Error as err:
+    except psycopg2.Error as err:
         print(f"Database Error: {err}")
         raise HTTPException(status_code=400, detail=f"Database Error: {str(err)}")
     finally:
         cursor.close()
         db.close()
 
-# সাপ্তাহিক স্ট্যাটাস পাওয়ার এন্ডপয়েন্ট
+
 @app.get("/get-stats")
 async def get_stats(email: str):
     db = get_db_connection()
-    cursor = db.cursor(dictionary=True)
+    cursor = db.cursor(cursor_factory=RealDictCursor)
     try:
-        # সর্বশেষ ৭টি মুড ডেটা আনা
+      
         query = """
             SELECT id, created_at, score, emotion 
             FROM mood_history 
@@ -298,9 +331,9 @@ async def get_stats(email: str):
         """
         cursor.execute(query, (email,))
         results = cursor.fetchall()
-        results.reverse() # ক্রমানুসারে দেখানোর জন্য উল্টে দেওয়া
+        results.reverse() 
         return results
-    except mysql.connector.Error as err:
+    except psycopg2.Error as err:
         raise HTTPException(status_code=400, detail=f"Database Error: {str(err)}")
     finally:
         cursor.close()

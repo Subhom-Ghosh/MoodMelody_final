@@ -81,6 +81,10 @@
     </div>
 
     <script>
+        if (window.location.protocol === "file:") {
+            window.location.replace("http://127.0.0.1:8000/auth.html");
+        }
+
         let isLogin = true;
 
         // লগইন এবং সাইনআপ এর মধ্যে টগল করার ফাংশন
@@ -127,7 +131,7 @@
             const payload = isLogin ? { email, password } : { username, email, password };
 
             try {
-                const response = await fetch(`http://127.0.0.1:8000${endpoint}`, {
+                const response = await fetch(endpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -139,7 +143,7 @@
                     if (isLogin) {
                         localStorage.setItem('username', data.username || email.split('@')[0]);
                         localStorage.setItem('email', email);
-                        window.location.href = "mainpage.html"; // আপনার মূল পেজের লিঙ্কে পাঠিয়ে দিন
+                        window.location.href = "/mainpage.html"; // আপনার মূল পেজের লিঙ্কে পাঠিয়ে দিন
                     } else {
                         alert("Account created successfully! Please login.");
                         toggleAuth();

@@ -3,6 +3,12 @@
  * Handles: Authentication check, Mood Analysis, AI Chat, and Music Search
  */
 
+const API_BASE = window.location.origin;
+
+if (window.location.protocol === "file:") {
+    window.location.replace("http://127.0.0.1:8000/mainpage.html");
+}
+
 // ১. ইউজার অথেনটিকেশন চেক
 function checkAuth() {
     const username = localStorage.getItem('username');
@@ -29,7 +35,7 @@ function checkAuth() {
         }
     } else {
         // ইউজার লগইন না থাকলে auth.html পেজে পাঠিয়ে দেবে
-        window.location.href = "auth.html";
+        window.location.href = "/auth.html";
     }
 }
 
@@ -55,13 +61,16 @@ async function analyzeMood() {
     actionBtn.disabled = true;
 
     try {
-        const response = await fetch('http://127.0.0.1:8000/analyze-mood', {
+        const response = await fetch(`${API_BASE}/analyze-mood`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ text: textInput.value })
         });
 
-        if (!response.ok) throw new Error("Server Error");
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText || "Server Error");
+        }
 
         const data = await response.json();
 
@@ -79,14 +88,14 @@ async function analyzeMood() {
         // analyzeMood ফাংশনের সাকসেস ব্লকের ভেতরে এটি যোগ করুন
         const userEmail = localStorage.getItem('email') || localStorage.getItem('userEmail');
         if (userEmail) {
-            fetch(`http://127.0.0.1:8000/save-mood?email=${userEmail}&emotion=${encodeURIComponent(data.emotion)}&score=${data.score || 5}`, {
+            fetch(`${API_BASE}/save-mood?email=${encodeURIComponent(userEmail)}&emotion=${encodeURIComponent(data.emotion)}&score=${data.score || 5}`, {
                 method: 'POST'
             }).catch(err => console.error("Failed to save mood:", err));
         }
 
     } catch (error) {
         console.error("Error:", error);
-        alert("Make sure your FastAPI server is running.");
+        alert(`Request failed: ${error.message}`);
     } finally {
         actionBtn.innerText = "Get Activity";
         actionBtn.disabled = false;
@@ -114,7 +123,7 @@ async function sendChatMessage() {
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
 
     try {
-        const response = await fetch('http://127.0.0.1:8000/chat', {
+        const response = await fetch(`${API_BASE}/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ message: msg })
@@ -140,7 +149,7 @@ async function getSpotifySong() {
     const btn = document.getElementById('actionBtn');
 
     try {
-        const moodRes = await fetch('http://127.0.0.1:8000/analyze-mood', {
+        const moodRes = await fetch(`${API_BASE}/analyze-mood`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ text: input.value })
@@ -148,7 +157,7 @@ async function getSpotifySong() {
         const moodData = await moodRes.json();
 
         // Saavn API কল করা
-        const musicRes = await fetch(`http://127.0.0.1:8000/get-saavn-song?query=${encodeURIComponent(moodData.music)}`);
+        const musicRes = await fetch(`${API_BASE}/get-saavn-song?query=${encodeURIComponent(moodData.music)}`);
         const musicData = await musicRes.json();
 
         if (musicData.success) {
@@ -195,8 +204,9 @@ document.addEventListener("mousemove", function (e) {
 
 async function toggleStats() {
     const statsSection = document.getElementById('statsSection');
+    if (!statsSection) return;
 
-    if (statsSection.classList.contains('hidden') || statsSection.style.display === 'none') {
+    if (statsSection.classList.contains('hidden') || statsSection.style.display === 'none' || statsSection.style.display === '') {
         statsSection.classList.remove('hidden');
         statsSection.style.display = 'flex'; // Force display to overcome CSS conflicts
         // পপআপ ওপেন হওয়ার সাথে সাথে চার্ট রেন্ডার হবে
@@ -219,7 +229,7 @@ async function renderMoodChart() {
     }
 
     try {
-        const response = await fetch(`http://127.0.0.1:8000/get-stats?email=${userEmail}`);
+        const response = await fetch(`${API_BASE}/get-stats?email=${encodeURIComponent(userEmail)}`);
         if (!response.ok) throw new Error("Failed to fetch stats");
 
         const stats = await response.json();
@@ -292,7 +302,7 @@ function logoutUser() {
     localStorage.removeItem('username');
     localStorage.removeItem('email');
     localStorage.removeItem('userEmail');
-    window.location.href = "auth.html";
+    window.location.href = "/auth.html";
 }
 
 function openSettings() {
@@ -349,5 +359,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const darkModeState = localStorage.getItem('darkMode');
     if (darkModeState === 'enabled') {
         document.body.classList.add('dark-theme');
+    }
+
+    const statsBtn = document.getElementById('statsBtn');
+    if (statsBtn) {
+        statsBtn.addEventListener('click', toggleStats);
     }
 });
