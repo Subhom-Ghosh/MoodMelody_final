@@ -351,10 +351,16 @@ async def signup(user: UserAuth):
 
 @app.post("/login")
 async def login(user: UserAuth):
-    if user.email == ADMIN_EMAIL and user.password == ADMIN_PASSWORD:
+    identifier = user.email.strip()
+    is_admin_identifier = identifier.casefold() in {ADMIN_EMAIL.casefold(), "admin"}
+
+    if is_admin_identifier:
+        if user.password != ADMIN_PASSWORD:
+            raise HTTPException(status_code=400, detail="Incorrect password!")
         return {
             "message": "Admin login successful!",
             "username": "Admin",
+            "email": ADMIN_EMAIL,
             "role": "admin"
         }
 
@@ -362,7 +368,10 @@ async def login(user: UserAuth):
     cursor = db.cursor(cursor_factory=RealDictCursor)
     
     try:
-        cursor.execute("SELECT * FROM users WHERE email = %s", (user.email,))
+        cursor.execute(
+            "SELECT * FROM users WHERE LOWER(email) = LOWER(%s) OR LOWER(username) = LOWER(%s)",
+            (identifier, identifier),
+        )
         db_user = cursor.fetchone()
 
         if not db_user:
@@ -374,7 +383,8 @@ async def login(user: UserAuth):
 
         return {
             "message": "Login successful!",
-            "username": db_user["username"]
+            "username": db_user["username"],
+            "email": db_user["email"]
         }
         
     finally:

@@ -26,7 +26,7 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* মাউস ইফেক্ট বা আবির ইফেক্ট এর জন্য CSS */
+       
         .abir {
             position: absolute;
             width: 6px;
@@ -63,7 +63,7 @@
                        class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none focus:ring-2 focus:ring-rose-500 text-white placeholder-gray-500 transition-all">
             </div>
 
-            <input id="email" type="email" placeholder="Email Address" 
+            <input id="email" type="text" placeholder="Username or email" 
                    class="bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none focus:ring-2 focus:ring-rose-500 text-white placeholder-gray-500 transition-all">
             
             <input id="password" type="password" placeholder="Password" 
@@ -87,7 +87,7 @@
 
         let isLogin = true;
 
-        // লগইন এবং সাইনআপ এর মধ্যে টগল করার ফাংশন
+        
         function toggleAuth() {
             isLogin = !isLogin;
             const title = document.getElementById('authTitle');
@@ -114,7 +114,7 @@
             }
         }
 
-        // এপিআই কল করার ফাংশন
+       
         async function handleAuth() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
@@ -142,9 +142,9 @@
                 if (response.ok) {
                     if (isLogin) {
                         localStorage.setItem('username', data.username || email.split('@')[0]);
-                        localStorage.setItem('email', email);
+                        localStorage.setItem('email', data.email || email);
                         if (data.role === 'admin') {
-                            localStorage.setItem('adminEmail', email);
+                            localStorage.setItem('adminEmail', data.email || email);
                             localStorage.setItem('adminPassword', password);
                             window.location.href = "/admin.html";
                         } else {

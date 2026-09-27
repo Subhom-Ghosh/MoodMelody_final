@@ -34,7 +34,7 @@ function checkAuth() {
             userInitials.innerText = firstLetter + secondLetter;
         }
     } else {
-        // ইউজার লগইন না থাকলে auth.html পেজে পাঠিয়ে দেবে
+       
         window.location.href = "/auth.html";
     }
 }
@@ -110,11 +110,11 @@ async function sendChatMessage() {
 
     if (!msg) return;
 
-    // ইউজারের মেসেজ অ্যাড করা
+    
     messagesDiv.innerHTML += `<div class="bg-white/10 p-3 rounded-2xl self-end ml-auto max-w-[80%] shadow-sm text-white mb-2"> ${msg} </div>`;
     input.value = '';
 
-    // টাইপিং ইন্ডিকেটর
+    
     const typingIndicator = document.createElement('div');
     typingIndicator.id = 'typing';
     typingIndicator.className = 'bg-rose-500/20 p-3 rounded-2xl self-start max-w-[80%] italic text-xs text-rose-300 mb-2';
